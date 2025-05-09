@@ -8,7 +8,7 @@ const getHeaders = (token?: string) => ({
 	...(token ? { Authorization: `token ${token}` } : {}),
 });
 
-async function cachedFetch<T>(env: Env, key: string, url: string, ttlSeconds = 300): Promise<T | null> {
+async function cachedFetch<T>(env: Env, key: string, url: string, ttl = 900): Promise<T | null> {
 	const cached = await env.ZIPLINE_VERSION_CACHE.get(key);
 	if (cached) return JSON.parse(cached) as T;
 
@@ -16,22 +16,22 @@ async function cachedFetch<T>(env: Env, key: string, url: string, ttlSeconds = 3
 	if (!res.ok) return null;
 
 	const data: T = await res.json();
-	await env.ZIPLINE_VERSION_CACHE.put(key, JSON.stringify(data), { expirationTtl: ttlSeconds });
+	await env.ZIPLINE_VERSION_CACHE.put(key, JSON.stringify(data), { expirationTtl: ttl });
 	return data;
 }
 
 export async function getLatestTag(env: Env): Promise<string | null> {
-	const data = await cachedFetch<LatestRelease>(env, 'zipline:releases:latest', `${GITHUB_API_BASE}/releases/latest`, 300);
+	const data = await cachedFetch<LatestRelease>(env, 'zipline:releases:latest', `${GITHUB_API_BASE}/releases/latest`);
 	return data?.tag_name ?? null;
 }
 
 export async function getLatestCommit(env: Env): Promise<{ sha: string; pull: boolean } | null> {
-	const commits = await cachedFetch<Commits>(env, 'zipline:commits:latest', `${GITHUB_API_BASE}/commits`, 60);
+	const commits = await cachedFetch<Commits>(env, 'zipline:commits:latest', `${GITHUB_API_BASE}/commits`);
 	if (!commits || commits.length === 0) return null;
 
 	const sha = commits[0].sha;
 
-	const checkRuns = await cachedFetch<CheckRuns>(env, `zipline:check-runs:${sha}`, `${GITHUB_API_BASE}/commits/${sha}/check-runs`, 300);
+	const checkRuns = await cachedFetch<CheckRuns>(env, `zipline:check-runs:${sha}`, `${GITHUB_API_BASE}/commits/${sha}/check-runs`);
 	if (!checkRuns) return { sha, pull: false };
 
 	const run = checkRuns.check_runs.find((r) => r.name === 'amend-builds');
@@ -41,11 +41,11 @@ export async function getLatestCommit(env: Env): Promise<{ sha: string; pull: bo
 }
 
 export async function getTagFromSha(sha: string, env: Env): Promise<Tags[0] | null> {
-	const tags = await cachedFetch<Tags>(env, 'zipline:tags:all', `${GITHUB_API_BASE}/tags`, 300);
+	const tags = await cachedFetch<Tags>(env, 'zipline:tags:all', `${GITHUB_API_BASE}/tags`);
 	return tags?.filter((t) => t.name.startsWith('v4')).find((t) => t.commit.sha === sha) || null;
 }
 
 export async function getTagFromName(name: string, env: Env): Promise<Tags[0] | null> {
-	const tags = await cachedFetch<Tags>(env, 'zipline:tags:all', `${GITHUB_API_BASE}/tags`, 300);
+	const tags = await cachedFetch<Tags>(env, 'zipline:tags:all', `${GITHUB_API_BASE}/tags`);
 	return tags?.filter((t) => t.name.startsWith('v4')).find((t) => t.name === name) || null;
 }
