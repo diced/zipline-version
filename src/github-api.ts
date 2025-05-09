@@ -42,7 +42,8 @@ export async function getLatestCommit(env: Env): Promise<{ sha: string; pull: bo
 
 export async function getTagFromSha(sha: string, env: Env): Promise<Tags[0] | null> {
 	const tags = await cachedFetch<Tags>(env, 'zipline:tags:all', `${GITHUB_API_BASE}/tags`);
-	return tags?.filter((t) => t.name.startsWith('v4')).find((t) => t.commit.sha === sha) || null;
+	console.log(tags);
+	return tags?.filter((t) => t.name.startsWith('v4')).find((t) => t.commit.sha.slice(0, 7) === sha) || null;
 }
 
 export async function getTagFromName(name: string, env: Env): Promise<Tags[0] | null> {
