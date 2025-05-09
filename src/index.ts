@@ -11,7 +11,7 @@
 //  * Learn more at https://developers.cloudflare.com/workers/
 //  */
 
-import { getLatestCommit, getLatestTag, getTagFromSha } from './github-api';
+import { getLatestCommit, getLatestTag, getTagFromName, getTagFromSha } from './github-api';
 
 // export default {
 // 	async fetch(request, env, ctx): Promise<Response> {
@@ -102,11 +102,12 @@ export default {
 			};
 		} else {
 			const latestCommit = await getLatestCommit(env);
+			const s = await getTagFromName(versionDetails.version, env);
 			response.isUpstream = true;
 			response.isRelease = false;
 			response.isLatest = latestCommit?.sha.slice(0, 7) === versionDetails.sha;
 			response.version = {
-				tag: versionDetails.version,
+				tag: s?.name!,
 				sha: versionDetails.sha,
 				url: `https://github.com/diced/zipline/commit/${versionDetails.sha}`,
 			};

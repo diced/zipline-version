@@ -48,5 +48,5 @@ export async function getTagFromSha(sha: string, env: Env): Promise<Tags[0] | nu
 
 export async function getTagFromName(name: string, env: Env): Promise<Tags[0] | null> {
 	const tags = await cachedFetch<Tags>(env, 'zipline:tags:all', `${GITHUB_API_BASE}/tags`);
-	return tags?.filter((t) => t.name.startsWith('v4')).find((t) => t.name === name) || null;
+	return tags?.filter((t) => t.name.startsWith('v4')).find((t) => t.name.includes(name)) || null;
 }
