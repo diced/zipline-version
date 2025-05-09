@@ -44,8 +44,22 @@ type VersionDetails = {
 	sha: string;
 };
 
+const corsHeaders = {
+	'Access-Control-Allow-Origin': '*',
+	'Access-Control-Allow-Methods': 'GET',
+	'Access-Control-Max-Age': '86400',
+};
+
 export default {
 	async fetch(request: Request, env: Env): Promise<Response> {
+		if (request.method === 'OPTIONS') {
+			return new Response(null, {
+				headers: {
+					...corsHeaders,
+				},
+			});
+		}
+
 		const url = new URL(request.url);
 		const searchParams = url.searchParams;
 		const response: VersionResponse = {};
