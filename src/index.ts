@@ -46,7 +46,7 @@ type VersionDetails = {
 
 const corsHeaders = {
 	'Access-Control-Allow-Origin': '*',
-	'Access-Control-Allow-Methods': 'GET',
+	'Access-Control-Allow-Methods': 'GET,OPTIONS',
 	'Access-Control-Max-Age': '86400',
 };
 
@@ -74,7 +74,7 @@ export default {
 			const sha = searchParams.get('sha');
 
 			if (!version || !sha) {
-				return new Response('Missing version or sha', { status: 400 });
+				return new Response('Missing version or sha', { status: 400, headers: corsHeaders });
 			}
 
 			versionDetails = { version, sha };
@@ -82,7 +82,7 @@ export default {
 
 		const latestTag = await getLatestTag(env);
 		if (!latestTag) {
-			return new Response('Failed to fetch latest tag', { status: 500 });
+			return new Response('Failed to fetch latest tag', { status: 500, headers: corsHeaders });
 		}
 
 		response.latest = {
@@ -122,7 +122,7 @@ export default {
 
 		return new Response(JSON.stringify(response), {
 			status: 200,
-			headers: { 'content-type': 'application/json' },
+			headers: { 'content-type': 'application/json', ...corsHeaders },
 		});
 	},
 };
