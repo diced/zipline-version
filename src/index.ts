@@ -1,129 +1,135 @@
-// /**
-//  * Welcome to Cloudflare Workers! This is your first worker.
-//  *
-//  * - Run `npm run dev` in your terminal to start a development server
-//  * - Open a browser tab at http://localhost:8787/ to see your worker in action
-//  * - Run `npm run deploy` to publish your worker
-//  *
-//  * Bind resources to your worker in `wrangler.jsonc`. After adding bindings, a type definition for the
-//  * `Env` object can be regenerated with `npm run cf-typegen`.
-//  *
-//  * Learn more at https://developers.cloudflare.com/workers/
-//  */
-
-import { getLatestCommit, getLatestTag, getTagFromName, getTagFromSha } from './github-api';
-
-// export default {
-// 	async fetch(request, env, ctx): Promise<Response> {
-// 		return new Response('Hello World!');
-// 	},
-// } satisfies ExportedHandler<Env>;
+import { getAllMetadata, prettyPrintMetadata } from './cache';
+import { API_CACHE_KEYS, getLatestCommit, getLatestTag, getTagFromName, getTagFromSha } from './github-api';
 
 interface VersionResponse {
-	isUpstream?: boolean;
-	isRelease?: boolean;
-	isLatest?: boolean;
-	version?: {
-		tag: string;
-		sha: string;
-		url: string;
-	};
-	latest?: {
-		tag: string;
-		url: string;
-		commit?: {
-			sha: string;
-			url: string;
-			pull: boolean;
-		};
-	};
+  isUpstream?: boolean;
+  isRelease?: boolean;
+  isLatest?: boolean;
+  version?: {
+    tag: string;
+    sha: string;
+    url: string;
+  };
+  latest?: {
+    tag: string;
+    url: string;
+    commit?: {
+      sha: string;
+      url: string;
+      pull: boolean;
+    };
+  };
 }
 
 type VersionDetails = {
-	version: string;
-	sha: string;
+  version: string;
+  sha: string;
 };
 
 const corsHeaders = {
-	'Access-Control-Allow-Origin': '*',
-	'Access-Control-Allow-Methods': 'GET,OPTIONS',
-	'Access-Control-Max-Age': '86400',
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET,OPTIONS',
+  'Access-Control-Max-Age': '86400',
 };
 
 export default {
-	async fetch(request: Request, env: Env): Promise<Response> {
-		if (request.method === 'OPTIONS') {
-			return new Response(null, {
-				headers: {
-					...corsHeaders,
-				},
-			});
-		}
+  async fetch(request: Request, env: Env): Promise<Response> {
+    if (request.method === 'OPTIONS') {
+      return new Response(null, {
+        headers: {
+          ...corsHeaders,
+        },
+      });
+    }
 
-		const url = new URL(request.url);
-		const searchParams = url.searchParams;
-		const response: VersionResponse = {};
+    const url = new URL(request.url);
+    if (url.pathname.startsWith('/cache')) {
+      const metadatas = await getAllMetadata(env);
+      if (url.pathname.endsWith('.json'))
+        return new Response(JSON.stringify(metadatas), {
+          headers: {
+            'content-type': 'application/json',
+            ...corsHeaders,
+          },
+        });
 
-		let versionDetails: VersionDetails | undefined;
-		try {
-			versionDetails = JSON.parse(decodeURIComponent(searchParams.get('details') || '{}'));
-		} catch {}
+      return new Response(prettyPrintMetadata(metadatas), {
+        headers: {
+          'content-type': 'text/plain',
+          ...corsHeaders,
+        },
+      });
+    }
 
-		if (!versionDetails || !versionDetails.version || !versionDetails.sha) {
-			const version = searchParams.get('version');
-			const sha = searchParams.get('sha');
+    const searchParams = url.searchParams;
+    const response: VersionResponse = {};
 
-			if (!version || !sha) {
-				return new Response('Missing version or sha', { status: 400, headers: corsHeaders });
-			}
+    let versionDetails: VersionDetails | undefined;
+    try {
+      versionDetails = JSON.parse(decodeURIComponent(searchParams.get('details') || '{}'));
+    } catch {}
 
-			versionDetails = { version, sha };
-		}
+    if (!versionDetails || !versionDetails.version || !versionDetails.sha) {
+      const version = searchParams.get('version');
+      const sha = searchParams.get('sha');
 
-		const latestTag = await getLatestTag(env);
-		if (!latestTag) {
-			return new Response('Failed to fetch latest tag', { status: 500, headers: corsHeaders });
-		}
+      if (!version || !sha) {
+        return new Response('Missing version or sha', { status: 400, headers: corsHeaders });
+      }
 
-		response.latest = {
-			tag: latestTag,
-			url: `https://github.com/diced/zipline/releases/${latestTag}`,
-		};
+      versionDetails = { version, sha };
+    }
 
-		const tag = await getTagFromSha(versionDetails.sha, env);
-		if (tag) {
-			response.isUpstream = false;
-			response.isRelease = true;
-			response.isLatest = latestTag === tag.name;
-			response.version = {
-				tag: tag.name,
-				sha: tag.commit.sha,
-				url: `https://github.com/diced/zipline/releases/${tag.name}`,
-			};
-		} else {
-			const latestCommit = await getLatestCommit(env);
-			const s = await getTagFromName(versionDetails.version, env);
-			response.isUpstream = true;
-			response.isRelease = false;
-			response.isLatest = latestCommit?.sha.slice(0, 7) === versionDetails.sha;
-			response.version = {
-				tag: s?.name!,
-				sha: versionDetails.sha,
-				url: `https://github.com/diced/zipline/commit/${versionDetails.sha}`,
-			};
+    const latestTag = await getLatestTag(env);
+    if (!latestTag) {
+      return new Response('Failed to fetch latest tag', { status: 500, headers: corsHeaders });
+    }
 
-			if (latestCommit) {
-				response.latest.commit = {
-					sha: latestCommit.sha,
-					url: `https://github.com/diced/zipline/commit/${latestCommit.sha}`,
-					pull: latestCommit.pull,
-				};
-			}
-		}
+    // check if the tag they are requesting is a valid tag
+    const validationTag = await getTagFromName(versionDetails.version, env);
+    if (!validationTag) {
+      return new Response('Invalid tag', { status: 400, headers: corsHeaders });
+    }
 
-		return new Response(JSON.stringify(response), {
-			status: 200,
-			headers: { 'content-type': 'application/json', ...corsHeaders },
-		});
-	},
+    response.latest = {
+      tag: latestTag,
+      url: `https://github.com/diced/zipline/releases/${latestTag}`,
+    };
+
+    const tag = await getTagFromSha(versionDetails.sha, env);
+    if (tag) {
+      response.isUpstream = false;
+      response.isRelease = true;
+      response.isLatest = latestTag === tag.name;
+      response.version = {
+        tag: tag.name,
+        sha: tag.commit.sha,
+        url: `https://github.com/diced/zipline/releases/${tag.name}`,
+      };
+    } else {
+      const latestCommit = await getLatestCommit(env);
+      const s = await getTagFromName(versionDetails.version, env);
+      response.isUpstream = true;
+      response.isRelease = false;
+      response.isLatest = latestCommit?.sha.slice(0, 7) === versionDetails.sha;
+      response.version = {
+        tag: s?.name!,
+        sha: versionDetails.sha,
+        url: `https://github.com/diced/zipline/commit/${versionDetails.sha}`,
+      };
+
+      if (latestCommit) {
+        response.latest.commit = {
+          sha: latestCommit.sha,
+          url: `https://github.com/diced/zipline/commit/${latestCommit.sha}`,
+          pull: latestCommit.pull,
+        };
+      }
+    }
+
+    return new Response(JSON.stringify(response), {
+      status: 200,
+      headers: { 'content-type': 'application/json', ...corsHeaders },
+    });
+  },
 };

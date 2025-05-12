@@ -117,3 +117,33 @@ curl -X GET "https://zipline-version.diced.sh/?version=4.0.2&sha=abc1234"
 	}
 }
 ```
+
+## Extra Stuff
+
+Get cache lengths by visiting `/cache`. Append `.json` to the URL to get a JSON array response.
+
+```txt
+Name: zipline:check-runs:08eb2df26c6f11f3b4158f28f82e990d0fc2371a
+  Expiration: 5/11/2025, 10:19:16 PM
+  Metadata:
+    Added: 5/11/2025, 10:14:16 PM
+    TTL: 300 seconds
+
+Name: zipline:commits:latest
+  Expiration: 5/11/2025, 10:19:15 PM
+  Metadata:
+    Added: 5/11/2025, 10:14:15 PM
+    TTL: 300 seconds
+
+Name: zipline:releases:latest
+  Expiration: 5/11/2025, 10:19:15 PM
+  Metadata:
+    Added: 5/11/2025, 10:14:15 PM
+    TTL: 300 seconds
+
+Name: zipline:tags:all
+  Expiration: 5/11/2025, 10:19:15 PM
+  Metadata:
+    Added: 5/11/2025, 10:14:15 PM
+    TTL: 300 seconds
+```
