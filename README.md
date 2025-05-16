@@ -1,12 +1,21 @@
-# Zipline Version Worker
+# Zipline Version
 
-Cloudflare Worker that tests versions/commit shas of [Zipline](https://github.com/diced/zipline) and returns relevant information based on the version.
+over engineered version checking software for [Zipline](https://github.com/diced/zipline).
+
+The repository is a monorepo that contains three packages:
+- [common](packages/common) - Common code used across the `node` and `worker` packages.
+- [node](packages/node) - The node.js compatible server
+- [worker](packages/worker) - The Cloudflare Worker that serves the version checking API
+
+For more information on how to run your own version checking server, see the respective [`node`](packages/node/README.md) and [`worker`](packages/worker/README.md) README files.
 
 ## Usage
 
+This sections documents the API that is the same across both runtimes.
+
 **Method:** `GET`
 
-**Base URL:** https://zipline-version.diced.sh/
+**Base URL:** https://zipline-version.diced.sh/ (or your own server url)
 
 ### Query Parameters
 
@@ -38,22 +47,22 @@ curl -X GET "https://zipline-version.diced.sh/?version=4.0.2&sha=abc1234"
 
 ```json
 {
-	"latest": {
-		"tag": "v4.0.2",
-		"url": "https://github.com/diced/zipline/releases/v4.0.2",
-		"commit": {
-			"sha": "25a2a54d8a062914677f0517430599300ae538ab",
-			"url": "https://github.com/diced/zipline/commit/25a2a54d8a062914677f0517430599300ae538ab",
-			"pull": true
-		}
-	},
-	"isUpstream": true,
-	"isRelease": false,
-	"isLatest": false,
-	"version": {
-		"sha": "08eb2df",
-		"url": "https://github.com/diced/zipline/commit/08eb2df"
-	}
+  "latest": {
+    "tag": "v4.0.2",
+    "url": "https://github.com/diced/zipline/releases/v4.0.2",
+    "commit": {
+      "sha": "25a2a54d8a062914677f0517430599300ae538ab",
+      "url": "https://github.com/diced/zipline/commit/25a2a54d8a062914677f0517430599300ae538ab",
+      "pull": true
+    }
+  },
+  "isUpstream": true,
+  "isRelease": false,
+  "isLatest": false,
+  "version": {
+    "sha": "08eb2df",
+    "url": "https://github.com/diced/zipline/commit/08eb2df"
+  }
 }
 ```
 
@@ -61,22 +70,22 @@ curl -X GET "https://zipline-version.diced.sh/?version=4.0.2&sha=abc1234"
 
 ```json
 {
-	"latest": {
-		"tag": "v4.0.2",
-		"url": "https://github.com/diced/zipline/releases/v4.0.2",
-		"commit": {
-			"sha": "25a2a54d8a062914677f0517430599300ae538ab",
-			"url": "https://github.com/diced/zipline/commit/25a2a54d8a062914677f0517430599300ae538ab",
-			"pull": true
-		}
-	},
-	"isUpstream": true,
-	"isRelease": false,
-	"isLatest": false,
-	"version": {
-		"sha": "35c37c2",
-		"url": "https://github.com/diced/zipline/commit/35c37c2"
-	}
+  "latest": {
+    "tag": "v4.0.2",
+    "url": "https://github.com/diced/zipline/releases/v4.0.2",
+    "commit": {
+      "sha": "25a2a54d8a062914677f0517430599300ae538ab",
+      "url": "https://github.com/diced/zipline/commit/25a2a54d8a062914677f0517430599300ae538ab",
+      "pull": true
+    }
+  },
+  "isUpstream": true,
+  "isRelease": false,
+  "isLatest": false,
+  "version": {
+    "sha": "35c37c2",
+    "url": "https://github.com/diced/zipline/commit/35c37c2"
+  }
 }
 ```
 
@@ -84,18 +93,18 @@ curl -X GET "https://zipline-version.diced.sh/?version=4.0.2&sha=abc1234"
 
 ```json
 {
-	"latest": {
-		"tag": "v4.0.2",
-		"url": "https://github.com/diced/zipline/releases/v4.0.2"
-	},
-	"isUpstream": false,
-	"isRelease": true,
-	"isLatest": true,
-	"version": {
-		"tag": "v4.0.2",
-		"sha": "e8207addba093aa902c9ca22be4bc800ad8930f6",
-		"url": "https://github.com/diced/zipline/releases/v4.0.2"
-	}
+  "latest": {
+    "tag": "v4.0.2",
+    "url": "https://github.com/diced/zipline/releases/v4.0.2"
+  },
+  "isUpstream": false,
+  "isRelease": true,
+  "isLatest": true,
+  "version": {
+    "tag": "v4.0.2",
+    "sha": "e8207addba093aa902c9ca22be4bc800ad8930f6",
+    "url": "https://github.com/diced/zipline/releases/v4.0.2"
+  }
 }
 ```
 
@@ -103,20 +112,29 @@ curl -X GET "https://zipline-version.diced.sh/?version=4.0.2&sha=abc1234"
 
 ```json
 {
-	"latest": {
-		"tag": "v4.0.2",
-		"url": "https://github.com/diced/zipline/releases/v4.0.2"
-	},
-	"isUpstream": false,
-	"isRelease": true,
-	"isLatest": false,
-	"version": {
-		"tag": "v4.0.1",
-		"sha": "ba6d5eb654a7c57633aa58e6153666067c157af3",
-		"url": "https://github.com/diced/zipline/releases/v4.0.1"
-	}
+  "latest": {
+    "tag": "v4.0.2",
+    "url": "https://github.com/diced/zipline/releases/v4.0.2"
+  },
+  "isUpstream": false,
+  "isRelease": true,
+  "isLatest": false,
+  "version": {
+    "tag": "v4.0.1",
+    "sha": "ba6d5eb654a7c57633aa58e6153666067c157af3",
+    "url": "https://github.com/diced/zipline/releases/v4.0.1"
+  }
 }
 ```
+
+## Errors
+
+There are a few custom error codes that are returned in JSON under the `error_code` field.
+| Code | Description |
+| ---- | ----------- |
+| `1000` | missing `version` or `sha` query parameter, or the `details` query paramter is formatted incorrectly |
+| `1001` | the server/worker is unable to connect to the GitHub API to fetch the latest release |
+| `1002` | the server/worker received a tag that doesn't exist |
 
 ## Extra Stuff
 

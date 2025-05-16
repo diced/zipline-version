@@ -3,7 +3,7 @@ import { serve } from '@hono/node-server';
 import { InMemoryCache } from './in-memory-cache';
 
 const inMemoryCache = new InMemoryCache();
-const api = new CachedGitHubApi(inMemoryCache);
+const api = new CachedGitHubApi(inMemoryCache, process.env.GITHUB_TOKEN ?? undefined);
 
 const app = createVersionApp(inMemoryCache, api);
 
