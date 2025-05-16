@@ -1,0 +1,30 @@
+{
+  "name": "common",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "common stuff for zipline version workers",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "pnpm run build:js && pnpm run build:dts",
+    "build:js": "esbuild --bundle --format=esm --outdir=dist ./src/index.ts",
+    "build:dts": "tsc --declaration --emitDeclarationOnly --outDir dist --rootDir src"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.10.0",
+  "dependencies": {
+    "@octokit/types": "^14.0.0",
+    "hono": "^4.7.9"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.4",
+    "typescript": "^5.8.3"
+  }
+}

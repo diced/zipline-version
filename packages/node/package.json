@@ -1,0 +1,17 @@
+{
+  "name": "node",
+  "scripts": {
+    "build": "esbuild --format=esm --outdir=dist --bundle --minify --platform=node src/index.ts",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "common": "workspace:*",
+    "@hono/node-server": "^1.14.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.17",
+    "esbuild": "^0.25.4",
+    "tsx": "^4.7.1",
+    "typescript": "^5.8.3"
+  }
+}
