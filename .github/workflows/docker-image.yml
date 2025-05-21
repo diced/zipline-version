@@ -69,7 +69,7 @@ jobs:
             --amend ghcr.io/diced/zipline-version:${{ steps.sha.outputs.short_sha }}-arm64 && \
           docker manifest create ghcr.io/diced/zipline-version:latest \
             --amend ghcr.io/diced/zipline-version:${{ steps.sha.outputs.short_sha }}-amd64 \
-            --amend ghcr.io/diced/zipline-version:${{ steps.sha.outputs.short_sha }}-arm64 && \
+            --amend ghcr.io/diced/zipline-version:${{ steps.sha.outputs.short_sha }}-arm64
 
       - name: push manifests
         run: |
