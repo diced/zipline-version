@@ -23,3 +23,18 @@ Additional configuration is done by environment variables.
 | `GITHUB_TOKEN` | GitHub token used to authenticate with the GitHub API | nothing, but is recommended to bypass normal ratelimits |
 | `PORT` | Port to listen on | `3000` |
 | `HOSTNAME` | Hostname to listen on | `0.0.0.0` |
+
+# Example with Zipline
+
+If you are already running Zipline with docker-compose, you can simply add the following to your `docker-compose.yml` file:
+
+```yaml
+version-checker:
+  image: ghcr.io/diced/zipline-version:latest
+  restart: unless-stopped
+  environment:
+    - HOSTNAME=0.0.0.0
+```
+
+then, head to the Server Settings page, scroll down to the "Version Checking API" section, and set the URL to `http://version-checker:3000`.
+
