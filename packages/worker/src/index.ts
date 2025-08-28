@@ -1,5 +1,6 @@
 import { CachedGitHubApi, createVersionApp } from 'common';
-import { WorkersKVCache } from './workers-kv-cache';
+// import { WorkersKVCache } from './workers-kv-cache';
+import { WorkersCache } from './workers-cache';
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
@@ -12,9 +13,10 @@ export default {
         },
       });
 
-    const workersKvCache = new WorkersKVCache(env);
-    const api = new CachedGitHubApi(workersKvCache, env.GITHUB_TOKEN);
-    const app = createVersionApp(workersKvCache, api);
+    // const cache = new WorkersKVCache(env);
+    const cache = new WorkersCache();
+    const api = new CachedGitHubApi(cache, env.GITHUB_TOKEN);
+    const app = createVersionApp(cache, api);
 
     return app.fetch(request, env);
   },

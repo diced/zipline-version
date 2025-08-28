@@ -5,8 +5,6 @@ export const CACHE_KEYS = {
   checkRuns: (sha: string) => `zipline:check-runs:${sha}`,
 };
 
-export const DEFAULT_CACHE_TTL = 300; // 5 minutes
-
 export type CacheMetadata = {
   // timestamp in ms when key was added
   added: number;
