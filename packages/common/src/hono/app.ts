@@ -4,6 +4,16 @@ import { VersionDetails, VersionResponse } from './types';
 import { CachedGitHubApi } from '../github/api';
 import { ContentfulStatusCode } from 'hono/utils/http-status';
 
+function shaMatch(sha1: string, sha2: string): boolean {
+  const lowerSha1 = sha1.toLowerCase();
+  const lowerSha2 = sha2.toLowerCase();
+
+  if (sha2.length < 6) 
+    return false;
+
+  return lowerSha1 === lowerSha2 || lowerSha1.startsWith(lowerSha2) || lowerSha2.startsWith(lowerSha1);
+}
+
 export function createVersionApp(cache: BaseCache, api: CachedGitHubApi) {
   const app = new Hono();
 
@@ -40,7 +50,7 @@ export function createVersionApp(cache: BaseCache, api: CachedGitHubApi) {
     let versionDetails: VersionDetails | undefined;
     try {
       versionDetails = JSON.parse(decodeURIComponent(searchParams.details || '{}'));
-    } catch {}
+    } catch { }
 
     if (!versionDetails || !versionDetails.version || !versionDetails.sha) {
       const version = searchParams.version;
@@ -90,7 +100,7 @@ export function createVersionApp(cache: BaseCache, api: CachedGitHubApi) {
       const s = await api.getTagFromName(versionDetails.version);
       response.isUpstream = true;
       response.isRelease = false;
-      response.isLatest = latestCommit?.sha.slice(0, 7) === versionDetails.sha;
+      response.isLatest = latestCommit ? shaMatch(latestCommit.sha, versionDetails.sha) : false;
       response.version = {
         tag: s?.name!,
         sha: versionDetails.sha,
